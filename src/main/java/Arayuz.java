@@ -3,10 +3,14 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -53,11 +57,14 @@ public class Arayuz extends javax.swing.JFrame {
     public Arayuz() {
         initComponents();
     }
-    public int cumleSayisi=7;
+    public int cumleSayisi=0;
     public String dosyaYolu="";
     public double cbt; //cümle benzerliği thresholdu
     public double cst; //cümle skoru thresholdu
-    
+    public Node[] nodes = new Node[1];
+    public List<String> stringList = new ArrayList<>();
+    public GraphModel graphModel;
+
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -229,48 +236,105 @@ public class Arayuz extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        // TODO add your handling code here:
-        //cbt = Integer.parseInt(jTextField2.getText());
-        //cst = Integer.parseInt(jTextField3.getText());
-        
+    public void nodeCumleAtamasi(){
         // Create a new project
         ProjectController pc = Lookup.getDefault().lookup(ProjectController.class);
         pc.newProject();
 
         // Get the graph model
-        GraphModel graphModel = Lookup.getDefault().lookup(GraphController.class).getGraphModel();
-
+        graphModel = Lookup.getDefault().lookup(GraphController.class).getGraphModel();
+        
         //Add String column
-        graphModel.getNodeTable().addColumn("cümleler arası anlamsal benzerlik skoru", Double.class);
+        graphModel.getNodeTable().addColumn("cümle içeriği", String.class);
         graphModel.getNodeTable().addColumn("cümle benzerliği thresholdunu geçen nodeların bağlantı sayısı", int.class);
         graphModel.getNodeTable().addColumn("cümle skoru", Double.class);
+        
+        if(!dosyaYolu.equals("")){
+        try (BufferedReader br = new BufferedReader(new FileReader(dosyaYolu))) {
+            String satir;
+            String cumle1 = null;
+            while ((satir = br.readLine()) != null) {
+                String[] cumleler = satir.split("\\.");
 
-        Node[] nodes = new Node[cumleSayisi];
-        for (int i = 0; i < cumleSayisi; i++) {
-            nodes[i] = graphModel.factory().newNode("n" + i);
-            nodes[i].setLabel("Node "+ i + ": 0.1|0.3");    //("Node "+i)
-            nodes[i].setAttribute("cümleler arası anlamsal benzerlik skoru",0.2);
-            nodes[i].setAttribute("cümle benzerliği thresholdunu geçen nodeların bağlantı sayısı", 2);
-            nodes[i].setAttribute("cümle skoru", 0.3);
-            graphModel.getDirectedGraph().addNode(nodes[i]);
-        }
-
-        //        //Write values to nodes
-        //        for (Node n : graphModel.getGraph().getNodes()) {
-        //                n.setAttribute("test", "hey");
-        //        }
-
-        //Create edges
-        for (int i = 0; i < cumleSayisi; i++) {
-            for (int j = 0; j < cumleSayisi; j++) {
-                if(j!=i){
-                    Edge e11 = graphModel.factory().newEdge(nodes[j], nodes[i], 0,  true);
-                    e11.setLabel("0.2");
-                    graphModel.getDirectedGraph().addEdge(e11);
+                for (String cumle : cumleler) {
+                    cumle = cumle.trim();
+                    if (!cumle.isEmpty()) {
+                        cumle1 = cumle; // Cümleyi cumle1 değişkenine atayın
+                        System.out.println("Okunan cümle: " + cumle1);
+                        cumleSayisi++;
+                        stringList.add(cumle1);
+                    }
                 }
             }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }}
+        Node[] newNodes = new Node[cumleSayisi];
+        for (int i = 0; i < cumleSayisi; i++) {
+            newNodes[i] = graphModel.factory().newNode("n" + i);
+            newNodes[i].setLabel("Cümle "+ (i+1) + ": 0.1|0.3");    //("Node "+i)
+            newNodes[i].setAttribute("cümle içeriği", stringList.get(i));
+            //nodes[i].setAttribute("cümle benzerliği thresholdunu geçen nodeların bağlantı sayısı",2);
+            //nodes[i].setAttribute("cümle skoru", 0.3);
+            graphModel.getDirectedGraph().addNode(newNodes[i]);
         }
+        nodes = newNodes;
+  
+    }
+    
+    public void cumleSkoruHesapla(){
+        //skor şu şekilde yazılacak -> nodes[i].setAttribute("cümle skoru", skor);
+        for (int i = 0; i < cumleSayisi; i++) {
+            String c = nodes[i].getAttribute("cümle içeriği").toString();
+            //İŞLEMLER
+        }
+    }
+    
+    public void cumlelerArasıAnlamsalBenzerlikSkoruHesapla(){
+        //Create edges - skor edge labellarına yazılacak -> e.setLabel(skor);
+        for (int i = 0; i < cumleSayisi; i++) {
+            for (int j = i; j < cumleSayisi; j++) {
+                if(j!=i){
+                    Edge e = graphModel.factory().newEdge(nodes[j], nodes[i], 0,  true);
+                    e.setLabel("0.2");
+                    graphModel.getDirectedGraph().addEdge(e);
+                }
+            }
+        } 
+    }
+    
+    public void cbtGeçenNodeSayisiHesapla(){
+        int skor;
+        for (int i = 0; i < cumleSayisi; i++) {
+            for (int j = i; j < cumleSayisi; j++) {
+                if(j!=i){
+                    Edge edge = graphModel.getGraph().getEdge(nodes[i], nodes[j]);
+                    //edge.getLabel();
+                }
+            }
+        } 
+    }
+    
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        // TODO add your handling code here:
+        if(!jTextField2.getText().isEmpty())cbt = Integer.parseInt(jTextField2.getText());
+        if(!jTextField3.getText().isEmpty())cst = Integer.parseInt(jTextField3.getText());
+        
+        nodeCumleAtamasi();
+        cumleSkoruHesapla();
+        cumlelerArasıAnlamsalBenzerlikSkoruHesapla();
+        cbtGeçenNodeSayisiHesapla();
+        
+        //Create edges
+//        for (int i = 0; i < cumleSayisi; i++) {
+//            for (int j = 0; j < cumleSayisi; j++) {
+//                if(j!=i){
+//                    Edge e11 = graphModel.factory().newEdge(nodes[j], nodes[i], 0,  true);
+//                    e11.setLabel("0.2");
+//                    graphModel.getDirectedGraph().addEdge(e11);
+//                }
+//            }
+//        }
         
         //Export full graph
         ExportController ec = Lookup.getDefault().lookup(ExportController.class);
