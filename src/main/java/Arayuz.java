@@ -5,16 +5,24 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.filechooser.FileSystemView;
+import opennlp.tools.stemmer.PorterStemmer;
+import opennlp.tools.tokenize.SimpleTokenizer;
 import org.gephi.appearance.api.AppearanceController;
 import org.gephi.appearance.api.AppearanceModel;
 import org.gephi.appearance.api.Function;
@@ -51,6 +59,39 @@ import org.gephi.project.api.Workspace;
 import org.gephi.statistics.plugin.GraphDistance;
 import org.gephi.toolkit.demos.plugins.preview.PreviewSketch;
 import org.openide.util.Lookup;
+import opennlp.tools.tokenize.TokenizerME;
+import opennlp.tools.tokenize.TokenizerModel;
+import edu.stanford.nlp.simple.Document;
+import edu.stanford.nlp.simple.Sentence;
+import edu.stanford.nlp.simple.Token;
+import edu.stanford.nlp.simple.Sentence;
+import java.text.DecimalFormat;
+import java.util.HashMap;
+import java.util.Map;
+import opennlp.tools.util.wordvector.Glove;
+import org.deeplearning4j.models.embeddings.loader.WordVectorSerializer;
+import org.deeplearning4j.models.embeddings.wordvectors.WordVectors;
+import org.deeplearning4j.models.word2vec.Word2Vec;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
+import org.apache.commons.math3.linear.ArrayRealVector;
+import org.apache.commons.math3.linear.RealVector;
+import org.apache.commons.math3.linear.RealVectorFormat;
+import org.apache.commons.math3.linear.SparseRealVector;
+import org.datavec.api.util.ClassPathResource;
+import org.deeplearning4j.models.embeddings.wordvectors.WordVectorsImpl;
+import org.deeplearning4j.text.sentenceiterator.BasicLineIterator;
+import org.deeplearning4j.text.sentenceiterator.SentenceIterator;
+import org.deeplearning4j.text.tokenization.tokenizerfactory.DefaultTokenizerFactory;
+import org.deeplearning4j.text.tokenization.tokenizerfactory.TokenizerFactory;
+import org.openide.util.Exceptions;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
+import org.nd4j.linalg.ops.transforms.Transforms;
+import org.deeplearning4j.models.word2vec.Word2Vec;
+import org.deeplearning4j.models.word2vec.wordstore.VocabCache;
+import org.deeplearning4j.text.tokenization.tokenizer.preprocessor.CommonPreprocessor;
+
 
 public class Arayuz extends javax.swing.JFrame {
 
@@ -290,19 +331,34 @@ public class Arayuz extends javax.swing.JFrame {
         }
     }
     
-    public void cumlelerArasıAnlamsalBenzerlikSkoruHesapla(){
+    public void cumlelerArasıAnlamsalBenzerlikSkoruHesapla() {
         //Create edges - skor edge labellarına yazılacak -> e.setLabel(skor);
         for (int i = 0; i < cumleSayisi; i++) {
+            String s1 = onIslemeAdimlariUygula(nodes[i].getAttribute("cümle içeriği").toString());
             for (int j = i; j < cumleSayisi; j++) {
                 if(j!=i){
-                    Edge e = graphModel.factory().newEdge(nodes[j], nodes[i], 0,  true);
-                    e.setLabel("0.2");
+                
+                String s2 = onIslemeAdimlariUygula(nodes[j].getAttribute("cümle içeriği").toString());
+
+                // GloVe modelini yükle
+                //Map<String, RealVector> wordVectors = loadGloveModel("C:/Users/emirc/Documents/NetBeansProjects/ExtractiveSummarization/src/main/resources/glove.6B.50d.txt");
+
+                //String gloveFilePath = "C:/Users/emirc/Documents/NetBeansProjects/ExtractiveSummarization/src/main/resources/glove.6B.50d.txt";
+
+        
+        
+
+                    Edge e = graphModel.factory().newEdge(nodes[i], nodes[j], 0,  true);
+                    e.setLabel("");//skor
                     graphModel.getDirectedGraph().addEdge(e);
                 }
             }
         } 
     }
     
+          
+   
+ 
     public void cbtGeçenNodeSayisiHesapla(){
         int skor;
         for (int i = 0; i < cumleSayisi; i++) {
@@ -313,6 +369,46 @@ public class Arayuz extends javax.swing.JFrame {
                 }
             }
         } 
+    }
+    
+    public String onIslemeAdimlariUygula(String s){
+        //TOKENİZATİON
+        SimpleTokenizer tokenizer = SimpleTokenizer.INSTANCE;
+        String[] tokens = tokenizer.tokenize(s); 
+        
+        //STEMMİNG
+        PorterStemmer porterStemmer = new PorterStemmer();
+        for (int i = 0; i < tokens.length; i++) {
+            String stem = porterStemmer.stem(tokens[i]);
+            tokens[i] = stem;
+        }
+        
+        //STOP-WORDS REMOVE
+        String result="";
+        Set<String> wordsFromFile = new HashSet<>();
+        StringBuilder builder = new StringBuilder();
+        try (InputStream inputStream = getClass().getResourceAsStream("/stopwords.txt");
+        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+        String line;
+            while ((line = reader.readLine()) != null) {
+                wordsFromFile.add(line.trim());
+            
+            }
+            for(int i = 0; i < tokens.length; i++) {
+                if(!wordsFromFile.contains(tokens[i])) {
+                builder.append(tokens[i]);
+                builder.append(' ');
+                }
+            }
+        result = builder.toString().trim();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        
+        //PUNCTUATİON REMOVE
+        result = result.replaceAll("\\p{Punct}", "");
+    
+        return result;
     }
     
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
