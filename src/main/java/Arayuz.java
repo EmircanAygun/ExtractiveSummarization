@@ -1,43 +1,23 @@
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
 import javax.swing.filechooser.FileSystemView;
 import opennlp.tools.stemmer.PorterStemmer;
 import opennlp.tools.tokenize.SimpleTokenizer;
-import org.gephi.appearance.api.AppearanceController;
-import org.gephi.appearance.api.AppearanceModel;
-import org.gephi.appearance.api.Function;
-import org.gephi.appearance.plugin.RankingElementColorTransformer;
-import org.gephi.appearance.plugin.RankingNodeSizeTransformer;
-import org.gephi.filters.api.FilterController;
-import org.gephi.filters.api.Query;
-import org.gephi.filters.api.Range;
-import org.gephi.filters.plugin.graph.DegreeRangeBuilder.DegreeRangeFilter;
-import org.gephi.graph.api.Column;
-import org.gephi.graph.api.DirectedGraph;
 import org.gephi.graph.api.Edge;
 import org.gephi.graph.api.GraphController;
 import org.gephi.graph.api.GraphModel;
-import org.gephi.graph.api.GraphView;
 import org.gephi.graph.api.Node;
 import org.gephi.graph.api.UndirectedGraph;
 import org.gephi.io.exporter.api.ExportController;
@@ -45,8 +25,6 @@ import org.gephi.io.importer.api.Container;
 import org.gephi.io.importer.api.EdgeDirectionDefault;
 import org.gephi.io.importer.api.ImportController;
 import org.gephi.io.processor.plugin.DefaultProcessor;
-import org.gephi.layout.plugin.force.StepDisplacement;
-import org.gephi.layout.plugin.force.yifanHu.YifanHuLayout;
 import org.gephi.preview.api.G2DTarget;
 import org.gephi.preview.api.PreviewController;
 import org.gephi.preview.api.PreviewModel;
@@ -59,39 +37,16 @@ import org.gephi.project.api.Workspace;
 import org.gephi.statistics.plugin.GraphDistance;
 import org.gephi.toolkit.demos.plugins.preview.PreviewSketch;
 import org.openide.util.Lookup;
-import opennlp.tools.tokenize.TokenizerME;
-import opennlp.tools.tokenize.TokenizerModel;
-import edu.stanford.nlp.simple.Document;
-import edu.stanford.nlp.simple.Sentence;
-import edu.stanford.nlp.simple.Token;
-import edu.stanford.nlp.simple.Sentence;
+import java.awt.TextArea;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
-import opennlp.tools.util.wordvector.Glove;
-import org.deeplearning4j.models.embeddings.loader.WordVectorSerializer;
-import org.deeplearning4j.models.embeddings.wordvectors.WordVectors;
-import org.deeplearning4j.models.word2vec.Word2Vec;
-import org.nd4j.linalg.api.ndarray.INDArray;
-import org.nd4j.linalg.factory.Nd4j;
+import javax.swing.JDialog;
 import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.RealVector;
-import org.apache.commons.math3.linear.RealVectorFormat;
-import org.apache.commons.math3.linear.SparseRealVector;
-import org.datavec.api.util.ClassPathResource;
-import org.deeplearning4j.models.embeddings.wordvectors.WordVectorsImpl;
-import org.deeplearning4j.text.sentenceiterator.BasicLineIterator;
-import org.deeplearning4j.text.sentenceiterator.SentenceIterator;
-import org.deeplearning4j.text.tokenization.tokenizerfactory.DefaultTokenizerFactory;
-import org.deeplearning4j.text.tokenization.tokenizerfactory.TokenizerFactory;
 import org.openide.util.Exceptions;
-import org.nd4j.linalg.api.ndarray.INDArray;
-import org.nd4j.linalg.factory.Nd4j;
-import org.nd4j.linalg.ops.transforms.Transforms;
-import org.deeplearning4j.models.word2vec.Word2Vec;
-import org.deeplearning4j.models.word2vec.wordstore.VocabCache;
-import org.deeplearning4j.text.tokenization.tokenizer.preprocessor.CommonPreprocessor;
-
 
 public class Arayuz extends javax.swing.JFrame {
 
@@ -100,12 +55,13 @@ public class Arayuz extends javax.swing.JFrame {
     }
     public int cumleSayisi=0;
     public String dosyaYolu="";
-    public double cbt; //cümle benzerliği thresholdu
-    public double cst; //cümle skoru thresholdu
+    public double cbt=0.0; //cümle benzerliği thresholdu
+    public double cst=0.0; //cümle skoru thresholdu
     public Node[] nodes = new Node[1];
     public List<String> stringList = new ArrayList<>();
     public GraphModel graphModel;
-
+    public GraphModel graphModelNew;
+    
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -129,6 +85,8 @@ public class Arayuz extends javax.swing.JFrame {
         jTextField1 = new javax.swing.JTextField();
         jButton3 = new javax.swing.JButton();
         jButton4 = new javax.swing.JButton();
+        jButton5 = new javax.swing.JButton();
+        jButton6 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -145,11 +103,20 @@ public class Arayuz extends javax.swing.JFrame {
         jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel2.setText("Thresholdu");
 
+        jTextField2.setEnabled(false);
+        jTextField2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jTextField2ActionPerformed(evt);
+            }
+        });
+
         jLabel3.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel3.setText("Cümle Skoru");
 
         jLabel4.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel4.setText("Thresholdu");
+
+        jTextField3.setEnabled(false);
 
         jSeparator3.setOrientation(javax.swing.SwingConstants.VERTICAL);
 
@@ -165,6 +132,7 @@ public class Arayuz extends javax.swing.JFrame {
         );
 
         jButton1.setText("Özetle");
+        jButton1.setEnabled(false);
         jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton1ActionPerformed(evt);
@@ -176,12 +144,37 @@ public class Arayuz extends javax.swing.JFrame {
         jLabel5.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel5.setText("Rogue Skoru");
 
+        jTextField1.setEditable(false);
+
         jButton3.setText("Esas Metin");
+        jButton3.setEnabled(false);
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
 
         jButton4.setText("Özet Metin");
+        jButton4.setEnabled(false);
         jButton4.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton4ActionPerformed(evt);
+            }
+        });
+
+        jButton5.setText("√");
+        jButton5.setEnabled(false);
+        jButton5.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton5ActionPerformed(evt);
+            }
+        });
+
+        jButton6.setText("√");
+        jButton6.setEnabled(false);
+        jButton6.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton6ActionPerformed(evt);
             }
         });
 
@@ -194,16 +187,22 @@ public class Arayuz extends javax.swing.JFrame {
                     .addComponent(jButton2, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jTextField2)
                     .addComponent(jLabel3, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel1Layout.createSequentialGroup()
                         .addContainerGap()
                         .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addComponent(jTextField3)
                     .addComponent(jSeparator1)
                     .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jSeparator2)
-                    .addComponent(jSeparator4))
+                    .addComponent(jSeparator4)
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel1Layout.createSequentialGroup()
+                        .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(10, 10, 10)
+                        .addComponent(jButton5))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButton6, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jSeparator3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -229,7 +228,9 @@ public class Arayuz extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton5))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jSeparator4, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(2, 2, 2)
@@ -237,12 +238,14 @@ public class Arayuz extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel4)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton6))
                 .addGap(18, 18, 18)
                 .addComponent(jButton1)
                 .addGap(9, 9, 9)
                 .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 126, Short.MAX_VALUE))
+                .addGap(0, 0, Short.MAX_VALUE))
             .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(jSeparator5, javax.swing.GroupLayout.Alignment.TRAILING)
             .addGroup(jPanel1Layout.createSequentialGroup()
@@ -313,61 +316,115 @@ public class Arayuz extends javax.swing.JFrame {
         Node[] newNodes = new Node[cumleSayisi];
         for (int i = 0; i < cumleSayisi; i++) {
             newNodes[i] = graphModel.factory().newNode("n" + i);
-            newNodes[i].setLabel("Cümle "+ (i+1) + ": 0.1|0.3");    //("Node "+i)
+            newNodes[i].setLabel("Cümle "+ (i+1) + ": 0.1");    //("Node "+i)
             newNodes[i].setAttribute("cümle içeriği", stringList.get(i));
             //nodes[i].setAttribute("cümle benzerliği thresholdunu geçen nodeların bağlantı sayısı",2);
             //nodes[i].setAttribute("cümle skoru", 0.3);
             graphModel.getDirectedGraph().addNode(newNodes[i]);
         }
         nodes = newNodes;
-  
+        stringList.clear();
     }
     
     public void cumleSkoruHesapla(){
         //skor şu şekilde yazılacak -> nodes[i].setAttribute("cümle skoru", skor);
+        double skor = 0.0;
         for (int i = 0; i < cumleSayisi; i++) {
+            
             String c = nodes[i].getAttribute("cümle içeriği").toString();
-            //İŞLEMLER
+            //İŞLEMLER...
+            //...
+            //İŞLEMLER SONU
+            nodes[i].setAttribute("cümle skoru", skor);
+            
         }
     }
     
-    public void cumlelerArasıAnlamsalBenzerlikSkoruHesapla() {
-        //Create edges - skor edge labellarına yazılacak -> e.setLabel(skor);
+    public void cumlelerArasıAnlamsalBenzerlikSkoruHesapla() throws IOException {
+        //Create edges - skor edge labellarına yazılacak -> e.setLabel(skor);                
+        // GloVe modelini yükle
+        Map<String, RealVector> wordVectors = loadGloveModel("C:/Users/emirc/Documents/NetBeansProjects/ExtractiveSummarization/src/main/resources/glove.6B.200d.txt");
+        DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.getDefault());
+        symbols.setDecimalSeparator('.');
+        DecimalFormat df = new DecimalFormat("0.00", symbols);
+
         for (int i = 0; i < cumleSayisi; i++) {
             String s1 = onIslemeAdimlariUygula(nodes[i].getAttribute("cümle içeriği").toString());
-            for (int j = i; j < cumleSayisi; j++) {
+            for (int j = 0; j < cumleSayisi; j++) {
                 if(j!=i){
                 
                 String s2 = onIslemeAdimlariUygula(nodes[j].getAttribute("cümle içeriği").toString());
+                
+                // Cümleleri vektörlere dönüştür
+                RealVector vector1 = sentenceToVector(s1, wordVectors);
+                RealVector vector2 = sentenceToVector(s2, wordVectors);
+                
+                // Kozinüs benzerliğini hesapla
+                double similarity = calculateCosineSimilarity(vector1, vector2);
 
-                // GloVe modelini yükle
-                //Map<String, RealVector> wordVectors = loadGloveModel("C:/Users/emirc/Documents/NetBeansProjects/ExtractiveSummarization/src/main/resources/glove.6B.50d.txt");
-
-                //String gloveFilePath = "C:/Users/emirc/Documents/NetBeansProjects/ExtractiveSummarization/src/main/resources/glove.6B.50d.txt";
-
-        
-        
-
-                    Edge e = graphModel.factory().newEdge(nodes[i], nodes[j], 0,  true);
-                    e.setLabel("");//skor
-                    graphModel.getDirectedGraph().addEdge(e);
+                // Sonucu yazdır
+                System.out.println("Cosine similarity: between " + i + " " + j + ": "+ similarity);
+                Edge e = graphModel.factory().newEdge(nodes[i], nodes[j], 0,  true);
+                e.setLabel(df.format(similarity)+"");//skor
+                graphModel.getDirectedGraph().addEdge(e);
+                
                 }
             }
-        } 
+        }
+    }
+
+    private static Map<String, RealVector> loadGloveModel(String filePath) throws IOException {
+        Map<String, RealVector> wordVectors = new HashMap<>();
+        BufferedReader br = new BufferedReader(new FileReader(filePath));
+        String line;
+        while ((line = br.readLine()) != null) {
+            String[] values = line.split(" ");
+            String word = values[0];
+            double[] vectorValues = new double[values.length - 1];
+            for (int i = 1; i < values.length; i++) {
+                vectorValues[i - 1] = Double.parseDouble(values[i]);
+            }
+            RealVector vector = new ArrayRealVector(vectorValues);
+            wordVectors.put(word, vector);
+        }
+        br.close();
+        return wordVectors;
+    }
+
+    private static RealVector sentenceToVector(String sentence, Map<String, RealVector> wordVectors) {
+        String[] words = sentence.toLowerCase().split(" ");
+        RealVector vector = new ArrayRealVector(wordVectors.get("a").getDimension());
+        for (String word : words) {
+            if (wordVectors.containsKey(word)) {
+                vector = vector.add(wordVectors.get(word));
+            }
+        }
+        return vector;
+    }
+
+    private static double calculateCosineSimilarity(RealVector vector1, RealVector vector2) {
+        double dotProduct = vector1.dotProduct(vector2);
+        double normProduct = vector1.getNorm() * vector2.getNorm();
+        if (normProduct == 0) {
+            return 0; // Kesişim kümesi boş olduğunda benzerlik 0'dır.
+        }
+        return dotProduct / normProduct;
     }
     
-          
-   
- 
     public void cbtGeçenNodeSayisiHesapla(){
-        int skor;
         for (int i = 0; i < cumleSayisi; i++) {
-            for (int j = i; j < cumleSayisi; j++) {
+            int skor=0;
+            for (int j = 0; j < cumleSayisi; j++) {
                 if(j!=i){
+                    
                     Edge edge = graphModel.getGraph().getEdge(nodes[i], nodes[j]);
-                    //edge.getLabel();
+                    if(Double.parseDouble(edge.getLabel())>cbt){
+                        skor++;
+                    }
                 }
             }
+            nodes[i].setAttribute("cümle benzerliği thresholdunu geçen nodeların bağlantı sayısı", skor);
+            nodes[i].setLabel("Cümle "+ (i+1) + " : "+nodes[i].getAttribute("cümle skoru")+" | "+skor);    
         } 
     }
     
@@ -411,37 +468,39 @@ public class Arayuz extends javax.swing.JFrame {
         return result;
     }
     
+    // -ÖZETLE BUTONU-
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         // TODO add your handling code here:
-        if(!jTextField2.getText().isEmpty())cbt = Integer.parseInt(jTextField2.getText());
-        if(!jTextField3.getText().isEmpty())cst = Integer.parseInt(jTextField3.getText());
+        //***BİR SONRAKİ HESAPLAMA TURU İÇİN YAPILAN DÜZENLEMELER***
+        cumleSayisi=0;
+        jButton5.setEnabled(false);jTextField2.setEnabled(false);
+        jButton6.setEnabled(false);jTextField3.setEnabled(false);
+        jButton3.setEnabled(true);
+        jButton4.setEnabled(true);
+        graphModel = graphModelNew;
+        Node[] newNodes = new Node[1];
+        nodes = newNodes;
+        //***DÜZENLEMELER SONU***
         
         nodeCumleAtamasi();
         cumleSkoruHesapla();
-        cumlelerArasıAnlamsalBenzerlikSkoruHesapla();
+        try {
+            cumlelerArasıAnlamsalBenzerlikSkoruHesapla();
+        } catch (IOException ex) {
+            Exceptions.printStackTrace(ex);
+        }
         cbtGeçenNodeSayisiHesapla();
-        
-        //Create edges
-//        for (int i = 0; i < cumleSayisi; i++) {
-//            for (int j = 0; j < cumleSayisi; j++) {
-//                if(j!=i){
-//                    Edge e11 = graphModel.factory().newEdge(nodes[j], nodes[i], 0,  true);
-//                    e11.setLabel("0.2");
-//                    graphModel.getDirectedGraph().addEdge(e11);
-//                }
-//            }
-//        }
-        
+
         //Export full graph
         ExportController ec = Lookup.getDefault().lookup(ExportController.class);
         try {
-            ec.exportFile(new File("io_gexf.gexf"));
+            ec.exportFile(new File("graph.gexf"));
         } catch (IOException ex) {
             ex.printStackTrace();
             return;
         }
-
-        
+       
+        //***GRAPHI GÖRSELLEŞTİRME ADIMLARI***
         //Init a project - and therefore a workspace
         ProjectController pc2 = Lookup.getDefault().lookup(ProjectController.class);
         pc2.newProject();
@@ -451,7 +510,7 @@ public class Arayuz extends javax.swing.JFrame {
         ImportController importController = Lookup.getDefault().lookup(ImportController.class);
         Container container;
         try {
-            File file = new File("C://Users/emirc/Documents/NetBeansProjects/ExtractiveSummarization/io_gexf.gexf");
+            File file = new File("C://Users/emirc/Documents/NetBeansProjects/ExtractiveSummarization/graph.gexf");
             container = importController.importFile(file);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -485,21 +544,98 @@ public class Arayuz extends javax.swing.JFrame {
         jPanel2.add(previewSketch, BorderLayout.CENTER);
         jPanel2.revalidate();
         jPanel2.repaint();
+        //***GRAPH GÖRSELLEŞTİRME SONU***
+        
+        jButton1.setEnabled(false);
+
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_jButton4ActionPerformed
-
+    
+    //DOSYA SEÇ BUTONU
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         // TODO add your handling code here:
         JFileChooser j = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());
       
         int r = j.showOpenDialog(null);
 
-        dosyaYolu = j.getSelectedFile().getAbsolutePath();
-        //jTextField2.setText(dosyaYolu);
+        // EĞER SEÇİM YAPILDIYSA GERÇEKLEŞECEKLER
+        if(r == JFileChooser.APPROVE_OPTION){ 
+            dosyaYolu = j.getSelectedFile().getAbsolutePath();
+            jButton5.setVisible(true);
+            jButton5.setEnabled(true);
+            jTextField2.setEnabled(true);
+            jButton3.setEnabled(false);
+            jButton4.setEnabled(false);
+            jButton1.setEnabled(false);
+        }
     }//GEN-LAST:event_jButton2ActionPerformed
+
+    private void jTextField2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField2ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jTextField2ActionPerformed
+
+    // CÜMLE BENZERLİĞİ THRESHOLDU SEÇME ADIMI
+    private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
+        // TODO add your handling code here:
+        if(!jTextField2.getText().isEmpty()){   
+            try
+            {
+                cbt = Double.parseDouble(jTextField2.getText());
+                jButton6.setVisible(true);
+                jButton6.setEnabled(true);
+                jTextField3.setEnabled(true);
+                jTextField3.setEditable(true);
+
+            }
+            catch(NumberFormatException e)
+            {
+                //not a double
+                jButton6.setEnabled(false);
+                jButton1.setEnabled(false);
+                jTextField3.setText("");
+                jTextField3.setEnabled(false);
+            }
+        }
+    }//GEN-LAST:event_jButton5ActionPerformed
+    
+    // CÜMLE SKORU THRESHOLDU SEÇME ADIMI
+    private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
+        // TODO add your handling code here:
+        if(!jTextField3.getText().isEmpty()){
+            try
+            {
+                cst = Double.parseDouble(jTextField3.getText());
+                jButton1.setVisible(true);
+                jButton1.setEnabled(true);
+            }
+            catch(NumberFormatException e)
+            {
+                //not a double
+                jButton1.setEnabled(false);
+            }
+        }
+    }//GEN-LAST:event_jButton6ActionPerformed
+
+    // ESAS METİN BUTONU
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+        // TODO add your handling code here:
+        JDialog d = new JDialog(this, "Esas Metin");
+        
+        // Creating TextArea
+        TextArea esasMetin = new TextArea("");
+        for (int i = 0; i < nodes.length; i++) {
+            esasMetin.append(nodes[i].getAttribute("cümle içeriği").toString());
+            d.add(esasMetin);
+            esasMetin.append("\n");
+        }
+        // setsize of dialog
+        d.setSize(600, 300);
+        // set visibility of dialog
+        d.setVisible(true);
+    }//GEN-LAST:event_jButton3ActionPerformed
 
     
     
@@ -540,6 +676,8 @@ public class Arayuz extends javax.swing.JFrame {
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
+    private javax.swing.JButton jButton5;
+    private javax.swing.JButton jButton6;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
