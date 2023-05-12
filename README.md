@@ -8,3 +8,9 @@ Apache Commons Math 4.0-beta1 -> https://dlcdn.apache.org//commons/math/binaries
 gephi toolkit (0.10.0) -> https://gephi.org/toolkit/
 
 Apache OpenNLP 2.2.0 -> https://www.apache.org/dyn/closer.cgi/opennlp/opennlp-2.2.0/apache-opennlp-2.2.0-bin.zip
+
+en-ner-person.bin}
+en-ner-location.bin}
+en-ner-organization.bin} -> https://opennlp.sourceforge.net/models-1.5/
+en-ner-time.bin}
+en-ner-date.bin}
