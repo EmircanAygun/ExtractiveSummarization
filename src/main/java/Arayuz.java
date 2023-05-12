@@ -38,12 +38,17 @@ import org.gephi.statistics.plugin.GraphDistance;
 import org.gephi.toolkit.demos.plugins.preview.PreviewSketch;
 import org.openide.util.Lookup;
 import java.awt.TextArea;
+import java.io.FileInputStream;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import javax.swing.JDialog;
+import opennlp.tools.namefind.NameFinderME;
+import opennlp.tools.namefind.TokenNameFinderModel;
+import opennlp.tools.tokenize.Tokenizer;
+import opennlp.tools.util.Span;
 import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.RealVector;
 import org.openide.util.Exceptions;
@@ -61,6 +66,7 @@ public class Arayuz extends javax.swing.JFrame {
     public List<String> stringList = new ArrayList<>();
     public GraphModel graphModel;
     public GraphModel graphModelNew;
+    public String baslik="";
     
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -293,6 +299,7 @@ public class Arayuz extends javax.swing.JFrame {
         graphModel.getNodeTable().addColumn("cümle benzerliği thresholdunu geçen nodeların bağlantı sayısı", int.class);
         graphModel.getNodeTable().addColumn("cümle skoru", Double.class);
         
+        int flag=0;
         if(!dosyaYolu.equals("")){
         try (BufferedReader br = new BufferedReader(new FileReader(dosyaYolu))) {
             String satir;
@@ -303,10 +310,11 @@ public class Arayuz extends javax.swing.JFrame {
                 for (String cumle : cumleler) {
                     cumle = cumle.trim();
                     if (!cumle.isEmpty()) {
-                        cumle1 = cumle; // Cümleyi cumle1 değişkenine atayın
+                        cumle1 = cumle; 
+                        cumle1=cumle1.concat(".");
                         System.out.println("Okunan cümle: " + cumle1);
-                        cumleSayisi++;
-                        stringList.add(cumle1);
+                        if(flag==1){cumleSayisi++; stringList.add(cumle1);}
+                        else {baslik=cumle1;flag=1;}
                     }
                 }
             }
@@ -329,15 +337,70 @@ public class Arayuz extends javax.swing.JFrame {
     public void cumleSkoruHesapla(){
         //skor şu şekilde yazılacak -> nodes[i].setAttribute("cümle skoru", skor);
         double skor = 0.0;
+        double p1=0.0,p2=0.0,p3=0.0,p4=0.0,p5=0.0;
+        //İŞLEMLER...
+        try (InputStream personModelStream = new FileInputStream("C:/Users/emirc/Documents/NetBeansProjects/ExtractiveSummarization/src/main/resources/en-ner-person.bin");
+            InputStream locationModelStream = new FileInputStream("C:/Users/emirc/Documents/NetBeansProjects/ExtractiveSummarization/src/main/resources/en-ner-location.bin");
+            InputStream organizationModelStream = new FileInputStream("C:/Users/emirc/Documents/NetBeansProjects/ExtractiveSummarization/src/main/resources/en-ner-organization.bin");
+            InputStream dateModelStream = new FileInputStream("C:/Users/emirc/Documents/NetBeansProjects/ExtractiveSummarization/src/main/resources/en-ner-date.bin");
+            InputStream timeModelStream = new FileInputStream("C:/Users/emirc/Documents/NetBeansProjects/ExtractiveSummarization/src/main/resources/en-ner-time.bin")){
+
+            Tokenizer tokenizer = SimpleTokenizer.INSTANCE;
+            
+            TokenNameFinderModel personModel = new TokenNameFinderModel(personModelStream);
+            NameFinderME personNameFinder = new NameFinderME(personModel);
+            
+            TokenNameFinderModel locationModel = new TokenNameFinderModel(locationModelStream);
+            NameFinderME locationNameFinder = new NameFinderME(locationModel);
+            
+            TokenNameFinderModel organizationModel = new TokenNameFinderModel(organizationModelStream);
+            NameFinderME organizationNameFinder = new NameFinderME(organizationModel);
+            
+            TokenNameFinderModel dateModel = new TokenNameFinderModel(dateModelStream);
+            NameFinderME dateNameFinder = new NameFinderME(dateModel);
+            
+            TokenNameFinderModel timeModel = new TokenNameFinderModel(timeModelStream);
+            NameFinderME timeNameFinder = new NameFinderME(timeModel);
         for (int i = 0; i < cumleSayisi; i++) {
             
             String c = nodes[i].getAttribute("cümle içeriği").toString();
-            //İŞLEMLER...
-            //...
-            //İŞLEMLER SONU
-            nodes[i].setAttribute("cümle skoru", skor);
             
+            String[] tokens = tokenizer.tokenize(c);
+            
+            Span[] personSpans = personNameFinder.find(tokens);
+            int numberOfPersons = personSpans.length;
+            
+            Span[] locationSpans = locationNameFinder.find(tokens);
+            int numberOfLocations = locationSpans.length;
+            
+            Span[] organizationSpans = organizationNameFinder.find(tokens);
+            int numberOfOrganizations = organizationSpans.length;
+            
+            Span[] timeSpans = timeNameFinder.find(tokens);
+            int numberOfTimes = timeSpans.length;
+            
+            Span[] dateSpans = dateNameFinder.find(tokens);
+            int numberOfDates = dateSpans.length;
+            
+//            System.out.print("Number of persons: " + numberOfPersons + " / ");
+//            System.out.print("Number of locations: " + numberOfLocations + " / ");
+//            System.out.print("Number of organizations: " + numberOfOrganizations + " / ");
+//            System.out.print("Number of dates: " + numberOfDates + " / ");
+//            System.out.println("Number of times: " + numberOfTimes + " / ");
+
+            System.out.println("sayılar -> "+(numberOfPersons+numberOfLocations+numberOfOrganizations+numberOfDates));
+            //p1'i tam bulamıyor.özel isim ve tarihlerde sıkıntı çıkıyor
+            
+            
+            nodes[i].setAttribute("cümle skoru", skor);
         }
+        } catch (IOException e) {
+            e.printStackTrace();
+          }
+            
+        //İŞLEMLER SONU
+            
+            
     }
     
     public void cumlelerArasıAnlamsalBenzerlikSkoruHesapla() throws IOException {
@@ -363,7 +426,7 @@ public class Arayuz extends javax.swing.JFrame {
                 double similarity = calculateCosineSimilarity(vector1, vector2);
 
                 // Sonucu yazdır
-                System.out.println("Cosine similarity: between " + i + " " + j + ": "+ similarity);
+                //System.out.println("Cosine similarity: between " + i + " " + j + ": "+ similarity);
                 Edge e = graphModel.factory().newEdge(nodes[i], nodes[j], 0,  true);
                 e.setLabel(df.format(similarity)+"");//skor
                 graphModel.getDirectedGraph().addEdge(e);
@@ -473,8 +536,8 @@ public class Arayuz extends javax.swing.JFrame {
         // TODO add your handling code here:
         //***BİR SONRAKİ HESAPLAMA TURU İÇİN YAPILAN DÜZENLEMELER***
         cumleSayisi=0;
-        jButton5.setEnabled(false);jTextField2.setEnabled(false);
-        jButton6.setEnabled(false);jTextField3.setEnabled(false);
+        jButton5.setEnabled(false);jTextField2.setEditable(false);
+        jButton6.setEnabled(false);jTextField3.setEditable(false);
         jButton3.setEnabled(true);
         jButton4.setEnabled(true);
         graphModel = graphModelNew;
@@ -626,15 +689,16 @@ public class Arayuz extends javax.swing.JFrame {
         
         // Creating TextArea
         TextArea esasMetin = new TextArea("");
+        esasMetin.append(baslik+"\n\n");
         for (int i = 0; i < nodes.length; i++) {
-            esasMetin.append(nodes[i].getAttribute("cümle içeriği").toString());
-            d.add(esasMetin);
-            esasMetin.append("\n");
+            esasMetin.append(nodes[i].getAttribute("cümle içeriği").toString()+"\n");
         }
+        d.add(esasMetin);
         // setsize of dialog
         d.setSize(600, 300);
         // set visibility of dialog
         d.setVisible(true);
+        esasMetin.setEditable(false);
     }//GEN-LAST:event_jButton3ActionPerformed
 
     
