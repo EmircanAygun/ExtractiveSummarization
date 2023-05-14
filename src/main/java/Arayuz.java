@@ -41,9 +41,14 @@ import java.awt.TextArea;
 import java.io.FileInputStream;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 import javax.swing.JDialog;
 import opennlp.tools.namefind.NameFinderME;
 import opennlp.tools.namefind.TokenNameFinderModel;
@@ -67,6 +72,8 @@ public class Arayuz extends javax.swing.JFrame {
     public GraphModel graphModel;
     public GraphModel graphModelNew;
     public String baslik="";
+    public TextArea ozetMetin = new TextArea("");
+
     
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -610,11 +617,20 @@ public class Arayuz extends javax.swing.JFrame {
         //***GRAPH GÖRSELLEŞTİRME SONU***
         
         jButton1.setEnabled(false);
-
+        ozetiCikar();
     }//GEN-LAST:event_jButton1ActionPerformed
 
+    //ÖZET METİN BUTONU
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
         // TODO add your handling code here:
+        JDialog d = new JDialog(this, baslik+"-Özet Metin");
+
+        d.add(ozetMetin);
+        // setsize of dialog
+        d.setSize(600, 300);
+        // set visibility of dialog
+        d.setVisible(true);
+        ozetMetin.setEditable(false);
     }//GEN-LAST:event_jButton4ActionPerformed
     
     //DOSYA SEÇ BUTONU
@@ -640,7 +656,7 @@ public class Arayuz extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_jTextField2ActionPerformed
 
-    // CÜMLE BENZERLİĞİ THRESHOLDU SEÇME ADIMI
+    // CÜMLE BENZERLİĞİ THRESHOLDU SEÇME BUTONU
     private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
         // TODO add your handling code here:
         if(!jTextField2.getText().isEmpty()){   
@@ -664,7 +680,7 @@ public class Arayuz extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_jButton5ActionPerformed
     
-    // CÜMLE SKORU THRESHOLDU SEÇME ADIMI
+    // CÜMLE SKORU THRESHOLDU SEÇME BUTONU
     private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
         // TODO add your handling code here:
         if(!jTextField3.getText().isEmpty()){
@@ -685,7 +701,7 @@ public class Arayuz extends javax.swing.JFrame {
     // ESAS METİN BUTONU
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
         // TODO add your handling code here:
-        JDialog d = new JDialog(this, "Esas Metin");
+        JDialog d = new JDialog(this, baslik+"-Esas Metin");
         
         // Creating TextArea
         TextArea esasMetin = new TextArea("");
@@ -701,7 +717,56 @@ public class Arayuz extends javax.swing.JFrame {
         esasMetin.setEditable(false);
     }//GEN-LAST:event_jButton3ActionPerformed
 
+    public void ozetiCikar(){
+        HashMap<Integer, Double> genelSkor = new HashMap<>();
+        
+        double CBTGNS_ortalaması=0.0;
+        for (int i = 0; i < nodes.length; i++) {
+            CBTGNS_ortalaması = CBTGNS_ortalaması + Integer.parseInt(nodes[i].getAttribute("cümle benzerliği thresholdunu geçen nodeların bağlantı sayısı").toString());
+        }
+        CBTGNS_ortalaması = CBTGNS_ortalaması/nodes.length;
+        
+        for (int i = 0; i < nodes.length; i++) {
+            if(Double.parseDouble(nodes[i].getAttribute("cümle skoru").toString())>= cst){
+                genelSkor.put( i,(Double.parseDouble(nodes[i].getAttribute("cümle skoru").toString())-cst) +
+                                 Math.abs(Integer.parseInt(nodes[i].getAttribute("cümle benzerliği thresholdunu geçen nodeların bağlantı sayısı").toString())-CBTGNS_ortalaması));
+                //System.out.println(genelSkor.get(i));
+            }
+        }
+        Map<Integer, Double> hm1 = sortByValue(genelSkor);
+        
+        // Sıralanmış skorları yazdırma
+        ozetMetin.append(baslik+"\n\n");
+        for (Map.Entry<Integer, Double> en : hm1.entrySet()) {
+            int anahtar = en.getKey();
+            //double deger = entry.getValue();
+            ozetMetin.append(nodes[anahtar].getAttribute("cümle içeriği").toString()+"\n");
+            //System.out.println(en.getValue());
+        }
+    }
     
+    public static HashMap<Integer, Double> sortByValue(HashMap<Integer, Double> hm)
+    {
+        // Create a list from elements of HashMap
+        List<Map.Entry<Integer, Double> > list =
+               new LinkedList<Map.Entry<Integer, Double> >(hm.entrySet());
+ 
+        // Sort the list
+        Collections.sort(list, new Comparator<Map.Entry<Integer, Double> >() {
+            public int compare(Map.Entry<Integer, Double> o1,
+                               Map.Entry<Integer, Double> o2)
+            {
+                return (o2.getValue()).compareTo(o1.getValue());
+            }
+        });
+         
+        // put data from sorted list to hashmap
+        HashMap<Integer, Double> temp = new LinkedHashMap<Integer, Double>();
+        for (Map.Entry<Integer, Double> aa : list) {
+            temp.put(aa.getKey(), aa.getValue());
+        }
+        return temp;
+    }
     
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
