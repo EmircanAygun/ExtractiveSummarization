@@ -41,6 +41,7 @@ import java.awt.TextArea;
 import java.io.FileInputStream;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -73,8 +74,10 @@ public class Arayuz extends javax.swing.JFrame {
     public GraphModel graphModelNew;
     public String baslik="";
     public TextArea ozetMetin = new TextArea("");
+    public TextArea esasMetin = new TextArea("");
+    public String ozetMetinString="";
+    public String esasMetinString="";
 
-    
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -318,9 +321,11 @@ public class Arayuz extends javax.swing.JFrame {
                     cumle = cumle.trim();
                     if (!cumle.isEmpty()) {
                         cumle1 = cumle; 
-                        cumle1=cumle1.concat(".");
-                        System.out.println("Okunan cümle: " + cumle1);
-                        if(flag==1){cumleSayisi++; stringList.add(cumle1);}
+                        if(flag==1){
+                            cumle1=cumle1.concat(".");
+                            System.out.println("Okunan cümle: " + cumle1);
+                            cumleSayisi++; 
+                            stringList.add(cumle1);}
                         else {baslik=cumle1;flag=1;}
                     }
                 }
@@ -342,9 +347,10 @@ public class Arayuz extends javax.swing.JFrame {
     }
     
     public void cumleSkoruHesapla(){
-        //skor şu şekilde yazılacak -> nodes[i].setAttribute("cümle skoru", skor);
+        //skor şu şekilde yazılıyor -> nodes[i].setAttribute("cümle skoru", skor);
         double skor = 0.0;
         double p1=0.0,p2=0.0,p3=0.0,p4=0.0,p5=0.0;
+        
         //İŞLEMLER...
         try (InputStream personModelStream = new FileInputStream("C:/Users/emirc/Documents/NetBeansProjects/ExtractiveSummarization/src/main/resources/en-ner-person.bin");
             InputStream locationModelStream = new FileInputStream("C:/Users/emirc/Documents/NetBeansProjects/ExtractiveSummarization/src/main/resources/en-ner-location.bin");
@@ -368,7 +374,9 @@ public class Arayuz extends javax.swing.JFrame {
             
             TokenNameFinderModel timeModel = new TokenNameFinderModel(timeModelStream);
             NameFinderME timeNameFinder = new NameFinderME(timeModel);
-        for (int i = 0; i < cumleSayisi; i++) {
+        
+        for (int i = 0; i < cumleSayisi; i++) { // HER BİR CÜMLE BU FOR DÖNGÜSÜ İÇERİSİNDE DÖNÜYOR OLACAK.STRİNG C ÜZERİNDEN İŞLEMLER YAPILACAK.
+            skor=0.0;
             
             String c = nodes[i].getAttribute("cümle içeriği").toString();
             
@@ -396,9 +404,12 @@ public class Arayuz extends javax.swing.JFrame {
 //            System.out.println("Number of times: " + numberOfTimes + " / ");
 
             System.out.println("sayılar -> "+(numberOfPersons+numberOfLocations+numberOfOrganizations+numberOfDates));
-            //p1'i tam bulamıyor.özel isim ve tarihlerde sıkıntı çıkıyor
+            //*** p1'i tam bulamıyor.özel isim ve tarihlerde sıkıntı çıkıyor
             
             
+            
+            
+            skor = (p1+p2+p3+p4+p5)/(5.0); // CÜMLENİN NİHAİ SKORU
             nodes[i].setAttribute("cümle skoru", skor);
         }
         } catch (IOException e) {
@@ -406,8 +417,6 @@ public class Arayuz extends javax.swing.JFrame {
           }
             
         //İŞLEMLER SONU
-            
-            
     }
     
     public void cumlelerArasıAnlamsalBenzerlikSkoruHesapla() throws IOException {
@@ -623,7 +632,7 @@ public class Arayuz extends javax.swing.JFrame {
     //ÖZET METİN BUTONU
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
         // TODO add your handling code here:
-        JDialog d = new JDialog(this, baslik+"-Özet Metin");
+        JDialog d = new JDialog(this, baslik+" - Özet Metin");
 
         d.add(ozetMetin);
         // setsize of dialog
@@ -701,14 +710,8 @@ public class Arayuz extends javax.swing.JFrame {
     // ESAS METİN BUTONU
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
         // TODO add your handling code here:
-        JDialog d = new JDialog(this, baslik+"-Esas Metin");
+        JDialog d = new JDialog(this, baslik+" - Esas Metin");
         
-        // Creating TextArea
-        TextArea esasMetin = new TextArea("");
-        esasMetin.append(baslik+"\n\n");
-        for (int i = 0; i < nodes.length; i++) {
-            esasMetin.append(nodes[i].getAttribute("cümle içeriği").toString()+"\n");
-        }
         d.add(esasMetin);
         // setsize of dialog
         d.setSize(600, 300);
@@ -729,20 +732,47 @@ public class Arayuz extends javax.swing.JFrame {
         for (int i = 0; i < nodes.length; i++) {
             if(Double.parseDouble(nodes[i].getAttribute("cümle skoru").toString())>= cst){
                 genelSkor.put( i,(Double.parseDouble(nodes[i].getAttribute("cümle skoru").toString())-cst) +
-                                 Math.abs(Integer.parseInt(nodes[i].getAttribute("cümle benzerliği thresholdunu geçen nodeların bağlantı sayısı").toString())-CBTGNS_ortalaması));
+                                 (Integer.parseInt(nodes[i].getAttribute("cümle benzerliği thresholdunu geçen nodeların bağlantı sayısı").toString())-CBTGNS_ortalaması));
                 //System.out.println(genelSkor.get(i));
             }
         }
         Map<Integer, Double> hm1 = sortByValue(genelSkor);
         
-        // Sıralanmış skorları yazdırma
-        ozetMetin.append(baslik+"\n\n");
+        // genel skorlara göre sıralanmış cümleleri özet metin dialoguna ekleme
+        ozetMetin.setText(baslik+"\n\n");
         for (Map.Entry<Integer, Double> en : hm1.entrySet()) {
             int anahtar = en.getKey();
             //double deger = entry.getValue();
             ozetMetin.append(nodes[anahtar].getAttribute("cümle içeriği").toString()+"\n");
+            ozetMetinString = ozetMetinString.concat(nodes[anahtar].getAttribute("cümle içeriği").toString());
             //System.out.println(en.getValue());
         }
+        
+        // dialog'a esas metini ekleme 
+        esasMetin.setText(baslik+"\n\n");
+        for (int i = 0; i < nodes.length; i++) {
+            esasMetin.append(nodes[i].getAttribute("cümle içeriği").toString()+"\n");
+            esasMetinString = esasMetinString.concat(nodes[i].getAttribute("cümle içeriği").toString());
+        }
+        
+        // Rogue Skoru hesaplama
+        List<String> kelimeler1 = Arrays.asList(esasMetinString.split(" "));
+        List<String> kelimeler2 = Arrays.asList(ozetMetinString.split(" "));
+
+        // Benzer kelimelerin sayısını bulma
+        int benzerKelimeSayisi = 0;
+        for (String kelime : kelimeler1) {
+            if (kelimeler2.contains(kelime)) {
+                benzerKelimeSayisi++;
+            }
+        }
+
+        // Rogue skorunu hesaplama
+        DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.getDefault());
+        symbols.setDecimalSeparator('.');
+        DecimalFormat df = new DecimalFormat("0.00", symbols);
+        double rogueSkoru = (double) benzerKelimeSayisi / (double) Math.max(kelimeler1.size(), kelimeler2.size());
+        jTextField1.setText(df.format(rogueSkoru) + "");
     }
     
     public static HashMap<Integer, Double> sortByValue(HashMap<Integer, Double> hm)
