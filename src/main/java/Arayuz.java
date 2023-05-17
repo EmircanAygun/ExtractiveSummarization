@@ -68,6 +68,7 @@ public class Arayuz extends javax.swing.JFrame {
     public String dosyaYolu="";
     public double cbt=0.0; //cümle benzerliği thresholdu
     public double cst=0.0; //cümle skoru thresholdu
+    public Double kenarSayisi=0.0;
     public Node[] nodes = new Node[1];
     public List<String> stringList = new ArrayList<>();
     public GraphModel graphModel;
@@ -322,7 +323,7 @@ public class Arayuz extends javax.swing.JFrame {
                     if (!cumle.isEmpty()) {
                         cumle1 = cumle; 
                         if(flag==1){
-                            cumle1=cumle1.concat(".");
+                            //cumle1=cumle1.concat(" . ");
                             System.out.println("Okunan cümle: " + cumle1);
                             cumleSayisi++; 
                             stringList.add(cumle1);}
@@ -361,19 +362,15 @@ public class Arayuz extends javax.swing.JFrame {
             Tokenizer tokenizer = SimpleTokenizer.INSTANCE;
             
             TokenNameFinderModel personModel = new TokenNameFinderModel(personModelStream);
-            NameFinderME personNameFinder = new NameFinderME(personModel);
-            
+            NameFinderME personNameFinder    = new NameFinderME(personModel);            
             TokenNameFinderModel locationModel = new TokenNameFinderModel(locationModelStream);
-            NameFinderME locationNameFinder = new NameFinderME(locationModel);
-            
+            NameFinderME locationNameFinder    = new NameFinderME(locationModel);            
             TokenNameFinderModel organizationModel = new TokenNameFinderModel(organizationModelStream);
-            NameFinderME organizationNameFinder = new NameFinderME(organizationModel);
-            
+            NameFinderME organizationNameFinder    = new NameFinderME(organizationModel);            
             TokenNameFinderModel dateModel = new TokenNameFinderModel(dateModelStream);
-            NameFinderME dateNameFinder = new NameFinderME(dateModel);
-            
+            NameFinderME dateNameFinder    = new NameFinderME(dateModel);            
             TokenNameFinderModel timeModel = new TokenNameFinderModel(timeModelStream);
-            NameFinderME timeNameFinder = new NameFinderME(timeModel);
+            NameFinderME timeNameFinder    = new NameFinderME(timeModel);
         
         for (int i = 0; i < cumleSayisi; i++) { // HER BİR CÜMLE BU FOR DÖNGÜSÜ İÇERİSİNDE DÖNÜYOR OLACAK.STRİNG C ÜZERİNDEN İŞLEMLER YAPILACAK.
             skor=0.0;
@@ -382,34 +379,94 @@ public class Arayuz extends javax.swing.JFrame {
             
             String[] tokens = tokenizer.tokenize(c);
             
-            Span[] personSpans = personNameFinder.find(tokens);
-            int numberOfPersons = personSpans.length;
-            
-            Span[] locationSpans = locationNameFinder.find(tokens);
-            int numberOfLocations = locationSpans.length;
-            
-            Span[] organizationSpans = organizationNameFinder.find(tokens);
-            int numberOfOrganizations = organizationSpans.length;
-            
-            Span[] timeSpans = timeNameFinder.find(tokens);
+            Span[] personSpans  = personNameFinder.find(tokens);
+            int numberOfPersons = personSpans.length;            
+            Span[] locationSpans  = locationNameFinder.find(tokens);
+            int numberOfLocations = locationSpans.length;            
+            Span[] organizationSpans  = organizationNameFinder.find(tokens);
+            int numberOfOrganizations = organizationSpans.length;            
+            Span[] timeSpans  = timeNameFinder.find(tokens);
             int numberOfTimes = timeSpans.length;
-            
-            Span[] dateSpans = dateNameFinder.find(tokens);
+            Span[] dateSpans  = dateNameFinder.find(tokens);
             int numberOfDates = dateSpans.length;
-            
+            for (String word : tokens) {
+            if (isNumeric(word) && !word.equals(word.toUpperCase())) {
+                numberOfDates--;
+                }
+            }
 //            System.out.print("Number of persons: " + numberOfPersons + " / ");
 //            System.out.print("Number of locations: " + numberOfLocations + " / ");
 //            System.out.print("Number of organizations: " + numberOfOrganizations + " / ");
 //            System.out.print("Number of dates: " + numberOfDates + " / ");
 //            System.out.println("Number of times: " + numberOfTimes + " / ");
 
-            System.out.println("sayılar -> "+(numberOfPersons+numberOfLocations+numberOfOrganizations+numberOfDates));
+            //System.out.println("sayılar -> "+(numberOfPersons+numberOfLocations+numberOfOrganizations+numberOfDates));
             //*** p1'i tam bulamıyor.özel isim ve tarihlerde sıkıntı çıkıyor
+            p1 = (numberOfPersons + numberOfLocations + numberOfOrganizations + numberOfDates);
+            // SON
             
             
+            // ***P2 KISMI***
+            int numericCount = countNumericData(c);
+            int totalWords = countWords(c);
+            p2 = (double)numericCount / totalWords;
+            // SON 
             
             
-            skor = (p1+p2+p3+p4+p5)/(5.0); // CÜMLENİN NİHAİ SKORU
+            // ***P3 KISMI***
+            p3 = Double.parseDouble(nodes[i].getAttribute("cümle benzerliği thresholdunu geçen nodeların bağlantı sayısı").toString()) / (cumleSayisi-1);            
+            // SON
+            
+            
+            //***P4 KISMI***
+            int count = countCommonWords(baslik, c); // baslik'taki kelimelerin kaç tanesinin cümlede geçtiğini bulma
+            p4 = (double) count / totalWords;
+            // SON
+            
+            
+            // ***P5 KISMI***
+            String[] kelimeler = esasMetinString.toLowerCase().split("\\W+");
+            // TF değerlerini hesaplamak için kelime frekanslarını saklayan bir harita oluştur
+            Map<String, Integer> kelimeFrekanslari = new HashMap<>();
+            for (String kelime : kelimeler) {
+               kelimeFrekanslari.put(kelime, kelimeFrekanslari.getOrDefault(kelime, 0) + 1);
+            }
+            // IDF değerlerini hesaplamak için kelimenin metinde kaç kez geçtiğini say
+            Map<String, Integer> kelimeGecisSayilari = new HashMap<>();
+            for (String kelime : kelimeler) {
+                if (!kelimeGecisSayilari.containsKey(kelime)) {
+                    kelimeGecisSayilari.put(kelime, 1);
+                }
+            }
+            // TF-IDF değerlerini hesapla ve sakla
+            Map<String, Double> tfidfDegerleri = new HashMap<>();
+            int toplamKelimeSayisi = kelimeler.length;
+            for (String kelime : kelimeFrekanslari.keySet()) {
+                double tf = (double) kelimeFrekanslari.get(kelime) / toplamKelimeSayisi;
+                double idf = Math.log((double) toplamKelimeSayisi / kelimeGecisSayilari.get(kelime));
+                double tfidf = tf * idf;
+                tfidfDegerleri.put(kelime, tfidf);
+            }
+            // TF-IDF değerlerine göre listeyi sırala
+            List<Map.Entry<String, Double>> siraliListe = new ArrayList<>(tfidfDegerleri.entrySet());
+            siraliListe.sort(Map.Entry.comparingByValue(Comparator.reverseOrder()));
+            // En yüksek TF-IDF değerine sahip toplam kelime sayısının yüzde 10'u kadar kelimeleri al
+            List<String> enYuksekKelimeler = new ArrayList<>();
+            count = Math.min(toplamKelimeSayisi/10, siraliListe.size());
+            for (int i2 = 0; i2 < count; i2++) {
+                enYuksekKelimeler.add(siraliListe.get(i2).getKey());
+            }
+            Map<String, Integer> kelimeGecisSayisi = countWordOccurrences(c, enYuksekKelimeler);
+            int k=0;
+            for (Map.Entry<String, Integer> entry : kelimeGecisSayilari.entrySet()) {
+                k++;
+            }
+            p5 = (double)k/totalWords;
+            // SON
+            
+            
+            skor = (double)(p1+p2+p3+p4+p5)/(25.0); // CÜMLENİN NİHAİ SKORU
+            System.out.println(skor + "  "+ (p1+p2+p3+p4+p5));
             nodes[i].setAttribute("cümle skoru", skor);
         }
         } catch (IOException e) {
@@ -417,6 +474,64 @@ public class Arayuz extends javax.swing.JFrame {
           }
             
         //İŞLEMLER SONU
+    }
+    private static int countNumericData(String sentence) {
+        int count = 0;
+        String[] words = sentence.split(" ");
+        for (String word : words) {
+            if (isNumeric(word)) {
+                count++;
+            }
+        }
+        return count;
+    }
+    private static boolean isNumeric(String str) {
+        try {
+            Double.parseDouble(str);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+    // Bir string içindeki kelimelerin kaç tanesinin diğer string içinde geçtiğini bulma
+    private static int countCommonWords(String s1, String s2) {
+        String[] words1 = s1.toLowerCase().split(" ");
+        String[] words2 = s2.toLowerCase().split(" ");
+
+        int count = 0;
+        for (String word : words1) {
+            if (containsWord(words2, word)) {
+                count++;
+            }
+        }
+        return count;
+    }
+    // Bir kelimenin bir string içinde geçip geçmediğini kontrol etme
+    private static boolean containsWord(String[] words, String target) {
+        for (String word : words) {
+            if (word.equals(target)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    // Bir string içindeki kelime sayısını bulma
+    private static int countWords(String s) {
+        String[] words = s.split(" ");
+        return words.length;
+    }
+    private static Map<String, Integer> countWordOccurrences(String cumle, List<String> enYuksekKelimeler) {
+        Map<String, Integer> kelimeGecisSayilari = new HashMap<>();
+
+        String[] kelimeler = cumle.toLowerCase().split("\\W+");
+
+        for (String kelime : kelimeler) {
+            if (enYuksekKelimeler.contains(kelime)) {
+                kelimeGecisSayilari.put(kelime, kelimeGecisSayilari.getOrDefault(kelime, 0) + 1);
+            }
+        }
+
+        return kelimeGecisSayilari;
     }
     
     public void cumlelerArasıAnlamsalBenzerlikSkoruHesapla() throws IOException {
@@ -503,7 +618,7 @@ public class Arayuz extends javax.swing.JFrame {
                 }
             }
             nodes[i].setAttribute("cümle benzerliği thresholdunu geçen nodeların bağlantı sayısı", skor);
-            nodes[i].setLabel("Cümle "+ (i+1) + " : "+nodes[i].getAttribute("cümle skoru")+" | "+skor);    
+            //nodes[i].setLabel("Cümle "+ (i+1) + " : "+nodes[i].getAttribute("cümle skoru")+" | "+skor);    
         } 
     }
     
@@ -562,13 +677,29 @@ public class Arayuz extends javax.swing.JFrame {
         //***DÜZENLEMELER SONU***
         
         nodeCumleAtamasi();
-        cumleSkoruHesapla();
+        
+        // dialogdaki texte esas metini ekleme 
+        esasMetin.setText(baslik+"\n\n");
+        for (int i = 0; i < nodes.length; i++) {
+            esasMetin.append(nodes[i].getAttribute("cümle içeriği").toString()+".\n");
+            esasMetinString = esasMetinString.concat(nodes[i].getAttribute("cümle içeriği").toString() + " ");
+        }
+        
         try {
             cumlelerArasıAnlamsalBenzerlikSkoruHesapla();
         } catch (IOException ex) {
             Exceptions.printStackTrace(ex);
         }
         cbtGeçenNodeSayisiHesapla();
+        cumleSkoruHesapla();
+        
+        DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.getDefault());
+        symbols.setDecimalSeparator('.');
+        DecimalFormat df = new DecimalFormat("0.00", symbols);
+        for (int i = 0; i < cumleSayisi; i++) {
+            nodes[i].setLabel("Cümle "+ (i+1) + " : "+df.format(Double.parseDouble(nodes[i].getAttribute("cümle skoru").toString()))+" | "+(nodes[i].getAttribute("cümle benzerliği thresholdunu geçen nodeların bağlantı sayısı").toString())); 
+        }
+        
 
         //Export full graph
         ExportController ec = Lookup.getDefault().lookup(ExportController.class);
@@ -655,6 +786,7 @@ public class Arayuz extends javax.swing.JFrame {
             jButton5.setVisible(true);
             jButton5.setEnabled(true);
             jTextField2.setEnabled(true);
+            jTextField2.setEditable(true);
             jButton3.setEnabled(false);
             jButton4.setEnabled(false);
             jButton1.setEnabled(false);
@@ -730,7 +862,7 @@ public class Arayuz extends javax.swing.JFrame {
         CBTGNS_ortalaması = CBTGNS_ortalaması/nodes.length;
         
         for (int i = 0; i < nodes.length; i++) {
-            if(Double.parseDouble(nodes[i].getAttribute("cümle skoru").toString())>= cst){
+            if(Double.parseDouble(nodes[i].getAttribute("cümle skoru").toString()) >= cst){
                 genelSkor.put( i,(Double.parseDouble(nodes[i].getAttribute("cümle skoru").toString())-cst) +
                                  (Integer.parseInt(nodes[i].getAttribute("cümle benzerliği thresholdunu geçen nodeların bağlantı sayısı").toString())-CBTGNS_ortalaması));
                 //System.out.println(genelSkor.get(i));
@@ -743,27 +875,23 @@ public class Arayuz extends javax.swing.JFrame {
         for (Map.Entry<Integer, Double> en : hm1.entrySet()) {
             int anahtar = en.getKey();
             //double deger = entry.getValue();
-            ozetMetin.append(nodes[anahtar].getAttribute("cümle içeriği").toString()+"\n");
-            ozetMetinString = ozetMetinString.concat(nodes[anahtar].getAttribute("cümle içeriği").toString());
+            ozetMetin.append(nodes[anahtar].getAttribute("cümle içeriği").toString()+".\n");
+            ozetMetinString = ozetMetinString.concat(nodes[anahtar].getAttribute("cümle içeriği").toString() + " ");
             //System.out.println(en.getValue());
         }
         
-        // dialog'a esas metini ekleme 
-        esasMetin.setText(baslik+"\n\n");
-        for (int i = 0; i < nodes.length; i++) {
-            esasMetin.append(nodes[i].getAttribute("cümle içeriği").toString()+"\n");
-            esasMetinString = esasMetinString.concat(nodes[i].getAttribute("cümle içeriği").toString());
-        }
-        
         // Rogue Skoru hesaplama
-        List<String> kelimeler1 = Arrays.asList(esasMetinString.split(" "));
-        List<String> kelimeler2 = Arrays.asList(ozetMetinString.split(" "));
+        List<String> kelimeler1 = Arrays.asList(esasMetinString.split("\\s+"));
+        List<String> kelimeler2 = Arrays.asList(ozetMetinString.split("\\s+"));
 
         // Benzer kelimelerin sayısını bulma
-        int benzerKelimeSayisi = 0;
-        for (String kelime : kelimeler1) {
-            if (kelimeler2.contains(kelime)) {
-                benzerKelimeSayisi++;
+        int benzerKelimeSayisi=0;
+        for (String kelime1 : kelimeler1) {
+            for (String kelime2 : kelimeler2) {
+                if (kelime1.equalsIgnoreCase(kelime2)) {
+                    benzerKelimeSayisi++;
+                    break;
+                }
             }
         }
 
@@ -771,8 +899,9 @@ public class Arayuz extends javax.swing.JFrame {
         DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.getDefault());
         symbols.setDecimalSeparator('.');
         DecimalFormat df = new DecimalFormat("0.00", symbols);
-        double rogueSkoru = (double) benzerKelimeSayisi / (double) Math.max(kelimeler1.size(), kelimeler2.size());
-        jTextField1.setText(df.format(rogueSkoru) + "");
+        double rogueSkoru = (double) (kelimeler2.size()) / (double) (kelimeler1.size());
+        jTextField1.setText("%" + Double.parseDouble(df.format(rogueSkoru))*100);
+        System.out.println(rogueSkoru);
     }
     
     public static HashMap<Integer, Double> sortByValue(HashMap<Integer, Double> hm)
