@@ -402,13 +402,13 @@ public class Arayuz extends javax.swing.JFrame {
 
             //System.out.println("sayılar -> "+(numberOfPersons+numberOfLocations+numberOfOrganizations+numberOfDates));
             //*** p1'i tam bulamıyor.özel isim ve tarihlerde sıkıntı çıkıyor
-            p1 = (numberOfPersons + numberOfLocations + numberOfOrganizations + numberOfDates);
+            int totalWords = countWords(c);
+            p1 = (numberOfPersons + numberOfLocations + numberOfOrganizations + numberOfDates)/totalWords;
             // SON
             
             
             // ***P2 KISMI***
             int numericCount = countNumericData(c);
-            int totalWords = countWords(c);
             p2 = (double)numericCount / totalWords;
             // SON 
             
@@ -465,7 +465,7 @@ public class Arayuz extends javax.swing.JFrame {
             // SON
             
             
-            skor = (double)(p1+p2+p3+p4+p5)/(25.0); // CÜMLENİN NİHAİ SKORU
+            skor = (double)(p1+p2+p3+p4+p5)/(17.0); // CÜMLENİN NİHAİ SKORU
             System.out.println(skor + "  "+ (p1+p2+p3+p4+p5));
             nodes[i].setAttribute("cümle skoru", skor);
         }

@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <gexf xmlns="http://gexf.net/1.3" version="1.3" xmlns:viz="http://gexf.net/1.3/viz" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://gexf.net/1.3 http://gexf.net/1.3/gexf.xsd">
-  <meta lastmodifieddate="2023-05-17">
+  <meta lastmodifieddate="2023-05-19">
     <creator>Apache NetBeans Platform Dev (Build {0})</creator>
     <title></title>
     <description></description>
@@ -12,81 +12,81 @@
       <attribute id="cümle skoru" title="cümle skoru" type="double"/>
     </attributes>
     <nodes>
-      <node id="n0" label="Cümle 1 : 0.44 | 8">
+      <node id="n0" label="Cümle 1 : 0.46 | 5">
         <attvalues>
           <attvalue for="cümle içeriği" value="A Christmas tree that can receive text messages has been unveiled at London's Tate Britain art gallery"/>
-          <attvalue for="cümle benzerliği thresholdunu geçen nodeların bağlantı sayısı" value="8"/>
-          <attvalue for="cümle skoru" value="0.44141176470588234"/>
+          <attvalue for="cümle benzerliği thresholdunu geçen nodeların bağlantı sayısı" value="5"/>
+          <attvalue for="cümle skoru" value="0.45501730103806226"/>
         </attvalues>
       </node>
-      <node id="n1" label="Cümle 2 : 0.33 | 6">
+      <node id="n1" label="Cümle 2 : 0.45 | 1">
         <attvalues>
           <attvalue for="cümle içeriği" value="The spruce has an antenna which can receive Bluetooth texts sent by visitors to the Tate"/>
-          <attvalue for="cümle benzerliği thresholdunu geçen nodeların bağlantı sayısı" value="6"/>
-          <attvalue for="cümle skoru" value="0.3265"/>
+          <attvalue for="cümle benzerliği thresholdunu geçen nodeların bağlantı sayısı" value="1"/>
+          <attvalue for="cümle skoru" value="0.450735294117647"/>
         </attvalues>
       </node>
-      <node id="n2" label="Cümle 3 : 0.30 | 9">
+      <node id="n2" label="Cümle 3 : 0.34 | 3">
         <attvalues>
           <attvalue for="cümle içeriği" value="The messages will be &quot;unwrapped&quot; by sculptor Richard Wentworth, who is responsible for decorating the tree with broken plates and light bulbs"/>
-          <attvalue for="cümle benzerliği thresholdunu geçen nodeların bağlantı sayısı" value="9"/>
-          <attvalue for="cümle skoru" value="0.2978181818181818"/>
+          <attvalue for="cümle benzerliği thresholdunu geçen nodeların bağlantı sayısı" value="3"/>
+          <attvalue for="cümle skoru" value="0.34385026737967916"/>
         </attvalues>
       </node>
-      <node id="n3" label="Cümle 4 : 0.36 | 8">
+      <node id="n3" label="Cümle 4 : 0.44 | 3">
         <attvalues>
           <attvalue for="cümle içeriği" value="It is the 17th year that the gallery has invited an artist to dress their Christmas tree"/>
-          <attvalue for="cümle benzerliği thresholdunu geçen nodeların bağlantı sayısı" value="8"/>
-          <attvalue for="cümle skoru" value="0.3614117647058823"/>
+          <attvalue for="cümle benzerliği thresholdunu geçen nodeların bağlantı sayısı" value="3"/>
+          <attvalue for="cümle skoru" value="0.44325259515570936"/>
         </attvalues>
       </node>
-      <node id="n4" label="Cümle 5 : 0.39 | 6">
+      <node id="n4" label="Cümle 5 : 0.50 | 3">
         <attvalues>
           <attvalue for="cümle içeriği" value="Artists who have decorated the Tate tree in previous years include Tracey Emin in 2002"/>
-          <attvalue for="cümle benzerliği thresholdunu geçen nodeların bağlantı sayısı" value="6"/>
-          <attvalue for="cümle skoru" value="0.39199999999999996"/>
-        </attvalues>
-      </node>
-      <node id="n5" label="Cümle 6 : 0.50 | 5">
-        <attvalues>
-          <attvalue for="cümle içeriği" value="The plain green Norway spruce is displayed in the gallery's foyer"/>
-          <attvalue for="cümle benzerliği thresholdunu geçen nodeların bağlantı sayısı" value="5"/>
+          <attvalue for="cümle benzerliği thresholdunu geçen nodeların bağlantı sayısı" value="3"/>
           <attvalue for="cümle skoru" value="0.5"/>
         </attvalues>
       </node>
-      <node id="n6" label="Cümle 7 : 0.38 | 1">
+      <node id="n5" label="Cümle 6 : 0.65 | 0">
+        <attvalues>
+          <attvalue for="cümle içeriği" value="The plain green Norway spruce is displayed in the gallery's foyer"/>
+          <attvalue for="cümle benzerliği thresholdunu geçen nodeların bağlantı sayısı" value="0"/>
+          <attvalue for="cümle skoru" value="0.6470588235294118"/>
+        </attvalues>
+      </node>
+      <node id="n6" label="Cümle 7 : 0.55 | 1">
         <attvalues>
           <attvalue for="cümle içeriği" value="Its light bulb adornments are dimmed, ordinary domestic ones joined together with string"/>
           <attvalue for="cümle benzerliği thresholdunu geçen nodeların bağlantı sayısı" value="1"/>
-          <attvalue for="cümle skoru" value="0.37630769230769234"/>
+          <attvalue for="cümle skoru" value="0.5533936651583711"/>
         </attvalues>
       </node>
-      <node id="n7" label="Cümle 8 : 0.37 | 7">
+      <node id="n7" label="Cümle 8 : 0.53 | 3">
         <attvalues>
           <attvalue for="cümle içeriği" value="The plates decorating the branches will be auctioned off for the children's charity ArtWorks"/>
-          <attvalue for="cümle benzerliği thresholdunu geçen nodeların bağlantı sayısı" value="7"/>
-          <attvalue for="cümle skoru" value="0.37371428571428567"/>
+          <attvalue for="cümle benzerliği thresholdunu geçen nodeların bağlantı sayısı" value="3"/>
+          <attvalue for="cümle skoru" value="0.5260504201680672"/>
         </attvalues>
       </node>
-      <node id="n8" label="Cümle 9 : 0.47 | 5">
+      <node id="n8" label="Cümle 9 : 0.55 | 0">
         <attvalues>
           <attvalue for="cümle içeriği" value="Wentworth worked as an assistant to sculptor Henry Moore in the late 1960s"/>
-          <attvalue for="cümle benzerliği thresholdunu geçen nodeların bağlantı sayısı" value="5"/>
-          <attvalue for="cümle skoru" value="0.4723076923076923"/>
+          <attvalue for="cümle benzerliği thresholdunu geçen nodeların bağlantı sayısı" value="0"/>
+          <attvalue for="cümle skoru" value="0.5475113122171946"/>
         </attvalues>
       </node>
-      <node id="n9" label="Cümle 10 : 0.30 | 4">
+      <node id="n9" label="Cümle 10 : 0.30 | 1">
         <attvalues>
           <attvalue for="cümle içeriği" value="His reputation as a sculptor grew in the 1980s, while he has been one of the most influential teachers during the last two decades"/>
-          <attvalue for="cümle benzerliği thresholdunu geçen nodeların bağlantı sayısı" value="4"/>
-          <attvalue for="cümle skoru" value="0.29766666666666663"/>
+          <attvalue for="cümle benzerliği thresholdunu geçen nodeların bağlantı sayısı" value="1"/>
+          <attvalue for="cümle skoru" value="0.30245098039215684"/>
         </attvalues>
       </node>
-      <node id="n10" label="Cümle 11 : 0.21 | 1">
+      <node id="n10" label="Cümle 11 : 0.30 | 0">
         <attvalues>
           <attvalue for="cümle içeriği" value="Wentworth is also known for his photography of mundane, everyday subjects such as a cigarette packet jammed under the wonky leg of a table"/>
-          <attvalue for="cümle benzerliği thresholdunu geçen nodeların bağlantı sayısı" value="1"/>
-          <attvalue for="cümle skoru" value="0.20566666666666666"/>
+          <attvalue for="cümle benzerliği thresholdunu geçen nodeların bağlantı sayısı" value="0"/>
+          <attvalue for="cümle skoru" value="0.2965686274509804"/>
         </attvalues>
       </node>
     </nodes>
